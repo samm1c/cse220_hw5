@@ -77,7 +77,7 @@ inner_loop:
     add $t6, $t3, $t6		# t6 = board address + offset = address of board[i][j]
     
     # print the number
-    lw $a0, 0($t6)		# a0 = address of board[i][j] -> function argument for syscall to print
+    lb $a0, 0($t6)		# a0 = address of board[i][j] -> function argument for syscall to print
     li $v0, 1			# 11 -> print integer in syscall
     syscall
     
