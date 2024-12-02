@@ -56,8 +56,8 @@ placePieceOnBoard:
     # load piece struct
     lw $s3, 0($a0)		# s3 = type (when loading piece fields)
     lw $s4, 4($a0)		# s4 = orientation
-    lw $s5, 8($s0)		# s5 = row
-    lw $s6, 12($s0)		# s6 = col
+    lw $s5, 8($a0)		# s5 = row
+    lw $s6, 12($a0)		# s6 = col
     
     move $s1, $a1			# s1 = ship_num
     li $s2, 0
@@ -81,6 +81,7 @@ placePieceOnBoard:
     j piece_done       # Invalid type
 
 piece_done:
+    bnez $v0, zeroOut	# clear board if piece returns non-zero (error)
     jr $ra
     
 # Function: printBoard
