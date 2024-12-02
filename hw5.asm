@@ -59,7 +59,7 @@ placePieceOnBoard:
     lw $s5, 8($s0)		# s5 = row
     lw $s6, 12($s0)		# s6 = col
     
-    lw $s1, $a1			# s1 = ship_num
+    move $s1, $a1			# s1 = ship_num
     li $s2, 0
 
     # Load piece fields
