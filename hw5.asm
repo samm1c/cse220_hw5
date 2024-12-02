@@ -136,7 +136,7 @@ place_tile:
     la $t3, board		# t3 -> holds board address
     
     # calculate board[row][col]
-    mult $t4, $a0, $t1		# t4 = row * width -> skip rows
+    mul $t4, $a0, $t1		# t4 = row * width -> skip rows
     add $t4, $t4, $a1		# t4 = (row * width) + col -> add col index
     add $t4, $t3, $t4		# t4 = board address + offset -> address of board[row][col]
     lb $t5, 0($t4)		# t5 = board[row][col] -> actual value
