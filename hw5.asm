@@ -15,7 +15,31 @@ extra_newline: .asciiz "\n\n" # Extra newline at end
 # Returns: void
 zeroOut:
     # Function prologue
-
+    # load board first
+    la $t0, board_width		# t0 -> width addr
+    lw $t1, 0($t0)		# t1 = width
+    la $t0, board_height	# t0 -> height addr
+    lw $t2, 0($t0)		# t2 = height
+    la $t3, board		# t3 -> board addr
+    
+    # start loop
+    li $t4, 0			# t4 = i = 0 = row index
+zero_outer_loop:
+    bge $t4, $t2, zero_done	# i >= height -> end of loop
+    li $t5, 0			# t5 = j = 0 = column index
+zero_inner_loop:
+    bge $t5, $t1, zero_inner_done
+    # calculate board[i][j]
+    mul $t6, $t4, $t1 		# t6 = i * width -> skip rows
+    add $t6, $t6, $t5		# t6 = (i * width) + j -> add column index
+    add $t6, $t3, $t6		# t6 = board address + offset = address of board[i][j]
+    sb $zero, 0($t6)		# set board[i][j] to 0
+    # loop management
+    addi $t5, $t5, 1		# j++
+    j zero_inner_loop
+zero_inner_done:
+    addi $t4, $t4, 1		# i++
+    j zero_outer_loop
 zero_done:
     # Function epilogue
     jr $ra
