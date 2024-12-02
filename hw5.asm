@@ -84,6 +84,7 @@ placePieceOnBoard:
 
 piece_done:
     bnez $s2, zeroOut	# clear board if piece returns non-zero (error)
+    move $v0, $t2
     
     # restore $ra
     lw $ra, 0($sp)
