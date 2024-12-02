@@ -128,8 +128,39 @@ print_end:
 #   $v0 - 0 if successful, 1 if occupied, 2 if out of bounds
 # Uses global variables: board (char[]), board_width (int), board_height (int)
 place_tile:
-    jr $ra
+    # load board first
+    la $t0, board_width		# t0 -> holds width address
+    lw $t1, 0($t0)		# t1 = width
+    la $t0, board_height	# t0 -> holds height address
+    lw $t2, 0($t0)		# t2 = height
+    la $t3, board		# t3 -> holds board address
+    
+    # calculate board[row][col]
+    mult $t4, $a0, $t1		# t4 = row * width -> skip rows
+    add $t4, $t4, $a1		# t4 = (row * width) + col -> add col index
+    add $t4, $t3, $t4		# t4 = board address + offset -> address of board[row][col]
+    lb $t5, 0($t4)		# t5 = board[row][col] -> actual value
+    
+    # check for out of bounds -> return 2
+    bltz $a0, out_of_bounds	# row < 0
+    bge $a0, $t2, out_of_bounds	# row >= height
+    bltz $a1, out_of_bounds	# col < 0
+    bge $a1, $t1, out_of_bounds	# col >= width
+    
+    # check if occupied -> return 1
+    bnez $t5, occupied		# board[row][col] != 0
 
+    # we're in the clear -> modify board!
+    sb $a2, 0($t4)		# set board[row][col] to val
+    
+    li $v0, 0			# success!
+    jr $ra
+out_of_bounds:
+    li $v0, 2
+    jr $ra
+occupied:
+    li $v0, 1
+    jr $ra
 # Function: test_fit
 # Arguments: 
 #   $a0 - address of piece array (5 pieces)
