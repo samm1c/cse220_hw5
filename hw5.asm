@@ -78,7 +78,12 @@ inner_loop:
     
     # print the character
     lb $a0, 0($t6)		# a0 = address of board[i][j] -> function argument for syscall to print
-    li $v0, 11			# 11 -> print in syscall
+    li $v0, 11			# 11 -> print character in syscall
+    syscall
+    
+    # print a space after
+    li $a0, 32			# a0 = 32 = ASCII for space
+    li $v0, 11			# 11 -> print char
     syscall
     
     addi $t5, $t5, 1		# j++
