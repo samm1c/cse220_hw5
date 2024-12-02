@@ -152,7 +152,6 @@ place_tile:
 
     # we're in the clear -> modify board!
     sb $a2, 0($t4)		# set board[row][col] to val
-    
     li $v0, 0			# success!
     jr $ra
 out_of_bounds:
@@ -161,6 +160,7 @@ out_of_bounds:
 occupied:
     li $v0, 1
     jr $ra
+    
 # Function: test_fit
 # Arguments: 
 #   $a0 - address of piece array (5 pieces)
@@ -171,6 +171,41 @@ test_fit:
 
 T_orientation4:
     # Study the other T orientations in skeleton.asm to understand how to write this label/subroutine
+    
+    # (0,0)
+    # load arguments (a0, a1, a2) for place_tile
+    move $a0, $s5		# a0 = row
+    move $a1, $s6		# a1 = col
+    move $a2, $s1		# a2 = ship_num
+    # call place_tile
+    jal place_tile
+    or $s2, $s2, $v0		# accumulate error by or'ing return value from place_tile
+    
+    # (1,0)
+    move $a0, $s5		
+    addi $a0, $a0, 1		# a0 = row + 1
+    move $a1, $s6		# a1 = col
+    move $a2, $s1		# a2 = ship_num
+    jal place_tile
+    or $s2, $s2, $v0
+    
+    # (2,0)
+    move $a0, $s5		
+    addi $a0, $a0, 2		# a0 = row + 2
+    move $a1, $s6		# a1 = col
+    move $a2, $s1		# a2 = ship_num
+    jal place_tile
+    or $s2, $s2, $v0
+    
+    # (1,1)
+    move $a0, $s5		
+    addi $a0, $a0, 1		# a0 = row + 1
+    move $a1, $s6		
+    addi $a1, $a1, 1		# a1 = col + 1
+    move $a2, $s1		# a2 = ship_num
+    jal place_tile
+    or $s2, $s2, $v0
+    
     j piece_done
 
 .include "skeleton.asm"
