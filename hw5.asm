@@ -51,8 +51,6 @@ zero_done:
 placePieceOnBoard:
     # Function prologue
     
-    # may or may not need to preserve s registers before loading piece struct
-    
     # preserve space for ra because this is a non-leaf function (calls other functions)
     addi $sp, $sp, -4		# space
     sw $ra, 0($sp)
@@ -85,10 +83,12 @@ placePieceOnBoard:
     j piece_done       # Invalid type
 
 piece_done:
-    bnez $v0, zeroOut	# clear board if piece returns non-zero (error)
+    bnez $s2, zeroOut	# clear board if piece returns non-zero (error)
+    
     # restore $ra
     lw $ra, 0($sp)
     addi $sp, $sp, 4
+    
     jr $ra
     
 # Function: printBoard
