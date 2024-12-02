@@ -50,6 +50,17 @@ zero_done:
 #   $a1 - ship_num
 placePieceOnBoard:
     # Function prologue
+    
+    # may or may not need to preserve s registers before loading piece struct
+    
+    # load piece struct
+    lw $s3, 0($a0)		# s3 = type (when loading piece fields)
+    lw $s4, 4($a0)		# s4 = orientation
+    lw $s5, 8($s0)		# s5 = row
+    lw $s6, 12($s0)		# s6 = col
+    
+    lw $s1, $a1			# s1 = ship_num
+    li $s2, 0
 
     # Load piece fields
     # First switch on type
@@ -185,7 +196,7 @@ T_orientation4:
     move $a0, $s5		
     addi $a0, $a0, 1		# a0 = row + 1
     move $a1, $s6		# a1 = col
-    move $a2, $s1		# a2 = ship_num
+    move $a2, $s1		
     jal place_tile
     or $s2, $s2, $v0
     
@@ -193,7 +204,7 @@ T_orientation4:
     move $a0, $s5		
     addi $a0, $a0, 2		# a0 = row + 2
     move $a1, $s6		# a1 = col
-    move $a2, $s1		# a2 = ship_num
+    move $a2, $s1		
     jal place_tile
     or $s2, $s2, $v0
     
@@ -202,7 +213,7 @@ T_orientation4:
     addi $a0, $a0, 1		# a0 = row + 1
     move $a1, $s6		
     addi $a1, $a1, 1		# a1 = col + 1
-    move $a2, $s1		# a2 = ship_num
+    move $a2, $s1		
     jal place_tile
     or $s2, $s2, $v0
     
