@@ -53,6 +53,10 @@ placePieceOnBoard:
     
     # may or may not need to preserve s registers before loading piece struct
     
+    # preserve space for ra because this is a non-leaf function (calls other functions)
+    addi $sp, $sp, -4		# space
+    sw $ra, 0($sp)
+    
     # load piece struct
     lw $s3, 0($a0)		# s3 = type (when loading piece fields)
     lw $s4, 4($a0)		# s4 = orientation
@@ -82,6 +86,9 @@ placePieceOnBoard:
 
 piece_done:
     bnez $v0, zeroOut	# clear board if piece returns non-zero (error)
+    # restore $ra
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
     jr $ra
     
 # Function: printBoard
