@@ -76,9 +76,9 @@ inner_loop:
     add $t6, $t6, $t5		# t6 = (i * width) + j -> add j column index
     add $t6, $t3, $t6		# t6 = board address + offset = address of board[i][j]
     
-    # print the character
-    lb $a0, 0($t6)		# a0 = address of board[i][j] -> function argument for syscall to print
-    li $v0, 11			# 11 -> print character in syscall
+    # print the number
+    lw $a0, 0($t6)		# a0 = address of board[i][j] -> function argument for syscall to print
+    li $v0, 1			# 11 -> print integer in syscall
     syscall
     
     # print a space after
@@ -91,7 +91,7 @@ inner_loop:
 new_row:
     # print new line
     li $a0, 10			# a0 = 10 = ASCII for \n -> function argument for syscall to print
-    li $v0, 11			# 11 -> print
+    li $v0, 11			# 11 -> print char
     syscall
     
     addi $t4, $t4, 1		# i++
