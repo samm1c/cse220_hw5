@@ -248,13 +248,15 @@ test_loop:
     move $a1, $t0			# a1 = index + 1 = ship_num
     
     # placePieceOnBoard overwrites my t registers, so store it on the stack before calling
-    addi $sp, $sp, -8			
+    addi $sp, $sp, -12			
     sw $t0, 0($sp)			# loop index
     sw $t4, 4($sp)			# original piece array address
+    sw $t5, 8($sp)			# current error
     jal placePieceOnBoard		# call function
     lw $t0, 0($sp)
     lw $t4, 4($sp)
-    addi $sp, $sp, 8
+    lw $t5, 8($sp)
+    addi $sp, $sp, 12
     
     move $a0, $t4			# fix a0 to its original address
     
