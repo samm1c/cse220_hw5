@@ -234,37 +234,43 @@ test_loop:
     li $t7, 1
     blt $t2, $t7, test_outofbounds	# type < 1
     blt $t3, $t7, test_outofbounds	# orientation < 1
+    
     li $t7, 7
     bgt $t2, $t7, test_outofbounds	# type > 7
+    
     li $t7, 4
     bgt $t3, $t7, test_outofbounds	# orientation > 4
     
-    # try to place ship!
+    # prepare arguments $a0, $a1 for placePieceOnBoard
     move $t4, $a0			# copy address of piece array b/c i need a0 for place()
     move $a0, $t1			# a0 = address of current ship
     addi $t0, $t0, 1
     move $a1, $t0			# a1 = index + 1 = ship_num
-    jal placePieceOnBoard
+    
+    # placePieceOnBoard overwrites my t registers, so store it on the stack before calling
+    addi $sp, $sp, -8			
+    sw $t0, 0($sp)			# loop index
+    sw $t4, 4($sp)			# original piece array address
+    jal placePieceOnBoard		# call function
+    lw $t0, 0($sp)
+    lw $t4, 4($sp)
+    addi $sp, $sp, 8
+    
+    move $a0, $t4			# fix a0 to its original address
     
     bgt $v0, $t5, update_error		# v0 from place() > current error -> update to greatest error!
     j test_loop_continue
 
 test_outofbounds:
-    li $t7, 4
-    move $v0, $t7
+    li $t5, 4
     j test_done
 
 update_error:
     move $t5, $v0			# t5 = v0 -> current error is the MAXIMUM
+    j test_loop_continue
    
 test_loop_continue:
     # loop management
-    
-    li $a0, 57
-    li $v0, 11
-    syscall
-    
-    move $a0, $t4			# fix a0 to its original address
     j test_loop
     
 test_done: # success!
