@@ -85,9 +85,12 @@ placePieceOnBoard:
 piece_done:
     beqz $s2, piece_epilogue 	# skip zero'ing out if board == 0
     jal zeroOut
-    #bnez $s2, call_zeroOut	# clear board if piece returns non-zero (error)
-    # restore $ra
+    li $t0, 3
+    blt $s2, $t0, piece_epilogue # skip if accumulated error (s2) < 3
+    li $v0, 3
+
 piece_epilogue:
+    # restore $ra
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
