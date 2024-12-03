@@ -83,15 +83,18 @@ placePieceOnBoard:
     j piece_done       # Invalid type
 
 piece_done: # error checking and return values!
+
     beq $s2, $zero, piece_success	# total accumulated error = 0 -> success!
     
+    jal zeroOut				# non-zero -> error -> clear board
+    
     li $t0, 1
-    beq $s2, $t0, piece_occupied
+    beq $s2, $t0, piece_occupied	# s2 == 1 -> return 1
     
     li $t0, 2
-    beq $s2, $t0, piece_outofbounds
+    beq $s2, $t0, piece_outofbounds	# s2 == 2 -> return 2
     
-    li $v0, 3				# otherwise return 3 b/c s2 == 3
+    li $v0, 3				# s2 == 3 -> return 3 guaranteed
     j restore_ra
 
 piece_success:
@@ -106,7 +109,7 @@ piece_outofbounds:
     li $v0, 2
     j restore_ra
 
-restore_ra:
+restore_ra: # ends function
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
