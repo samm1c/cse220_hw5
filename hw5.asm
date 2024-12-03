@@ -82,21 +82,35 @@ placePieceOnBoard:
     beq $s3, $t0, piece_T
     j piece_done       # Invalid type
 
-piece_done:
-    beqz $s2, piece_epilogue 	# skip zero'ing out if board == 0
-    jal zeroOut
-    li $t0, 3
-    blt $s2, $t0, piece_epilogue # skip if accumulated error (s2) < 3
-    li $v0, 3
+piece_done: # error checking and return values!
+    beq $s2, $zero, piece_success	# total accumulated error = 0 -> success!
+    
+    li $t0, 1
+    beq $s2, $t0, piece_occupied
+    
+    li $t0, 2
+    beq $s2, $t0, piece_outofbounds
+    
+    li $v0, 3				# otherwise return 3 b/c s2 == 3
+    j restore_ra
 
-piece_epilogue:
-    # restore $ra
+piece_success:
+    li $v0, 0
+    j restore_ra
+    
+piece_occupied:
+    li $v0, 1
+    j restore_ra
+
+piece_outofbounds:
+    li $v0, 2
+    j restore_ra
+
+restore_ra:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
-    
-#call_zeroOut:
-#   jal zeroOut
+
     
 # Function: printBoard
 # Arguments: None (uses global variables)
