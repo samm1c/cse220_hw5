@@ -261,18 +261,20 @@ test_loop:
     move $a0, $t4			# fix a0 to its original address
     
     bgt $v0, $t5, update_error		# v0 from place() > current error -> update to greatest error!
-    j test_loop_continue
+    j test_loop
 
 test_outofbounds:
+    # clear the board first
+    
+    jal zeroOut
+    
+    
+    # return
     li $t5, 4
     j test_done
 
 update_error:
     move $t5, $v0			# t5 = v0 -> current error is the MAXIMUM
-    j test_loop_continue
-   
-test_loop_continue:
-    # loop management
     j test_loop
     
 test_done: # success!
