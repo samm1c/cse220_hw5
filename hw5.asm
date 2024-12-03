@@ -83,14 +83,17 @@ placePieceOnBoard:
     j piece_done       # Invalid type
 
 piece_done:
-    bnez $s2, zeroOut	# clear board if piece returns non-zero (error)
-    move $v0, $t2
-    
+    beqz $s2, piece_epilogue 	# skip zero'ing out if board == 0
+    jal zeroOut
+    #bnez $s2, call_zeroOut	# clear board if piece returns non-zero (error)
     # restore $ra
+piece_epilogue:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
-    
     jr $ra
+    
+#call_zeroOut:
+#   jal zeroOut
     
 # Function: printBoard
 # Arguments: None (uses global variables)
