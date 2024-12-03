@@ -83,14 +83,13 @@ placePieceOnBoard:
     j piece_done       # Invalid type
 
 piece_done: # error checking and return values!
-
     beq $s2, $zero, piece_success	# total accumulated error = 0 -> success!
     
     jal zeroOut				# non-zero -> error -> clear board
     
     li $t0, 1
     beq $s2, $t0, piece_occupied	# s2 == 1 -> return 1
-    
+ 
     li $t0, 2
     beq $s2, $t0, piece_outofbounds	# s2 == 2 -> return 2
     
@@ -100,7 +99,7 @@ piece_done: # error checking and return values!
 piece_success:
     li $v0, 0
     j restore_ra
-    
+
 piece_occupied:
     li $v0, 1
     j restore_ra
@@ -185,22 +184,22 @@ place_tile:
     lb $t5, 0($t4)		# t5 = board[row][col] -> actual value
     
     # check for out of bounds -> return 2
-    bltz $a0, out_of_bounds	# row < 0
-    bge $a0, $t2, out_of_bounds	# row >= height
-    bltz $a1, out_of_bounds	# col < 0
-    bge $a1, $t1, out_of_bounds	# col >= width
+    bltz $a0, 	  place_out_of_bounds	# row < 0
+    bge $a0, $t2, place_out_of_bounds	# row >= height
+    bltz $a1, 	  place_out_of_bounds	# col < 0
+    bge $a1, $t1, place_out_of_bounds	# col >= width
     
     # check if occupied -> return 1
-    bnez $t5, occupied		# board[row][col] != 0
+    bnez $t5, place_occupied		# board[row][col] != 0
 
     # we're in the clear -> modify board!
     sb $a2, 0($t4)		# set board[row][col] to val
     li $v0, 0			# success!
     jr $ra
-out_of_bounds:
+place_out_of_bounds:
     li $v0, 2
     jr $ra
-occupied:
+place_occupied:
     li $v0, 1
     jr $ra
     
@@ -209,6 +208,69 @@ occupied:
 #   $a0 - address of piece array (5 pieces)
 test_fit:
     # Function prologue
+    
+    # preserve ra
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    
+    # initialize loop
+    li $t0, 0			# i = 0 = index 
+    li $v0, 0			# assume no errors
+    li $t5, 0			# t5 = current error
+    
+test_loop: 
+    li $t1, 5
+    bge $t0, $t1, test_done	# (i >= 5) -> 5 times for 5 pieces
+    
+    # load arguments
+    li $t1, 16
+    mul $t1, $t0, $t1		# t1 = (i * ship size) -> skip previous ships (4 ints = size 16)
+    add $t1, $a0, $t1		# t1 = board + offset = address of current ship
+    
+    lw $t2, 0($t1)		# t2 = type
+    lw $t3, 4($t1)		# t3 = orientation
+    
+    # check type and orientation
+    li $t7, 1
+    blt $t2, $t7, test_outofbounds	# type < 1
+    blt $t3, $t7, test_outofbounds	# orientation < 1
+    li $t7, 7
+    bgt $t2, $t7, test_outofbounds	# type > 7
+    li $t7, 4
+    bgt $t3, $t7, test_outofbounds	# orientation > 4
+    
+    # try to place ship!
+    move $t4, $a0			# copy address of piece array b/c i need a0 for place()
+    move $a0, $t1			# a0 = address of current ship
+    addi $t0, $t0, 1
+    move $a1, $t0			# a1 = index + 1 = ship_num
+    jal placePieceOnBoard
+    
+    bgt $v0, $t5, update_error		# v0 from place() > current error -> update to greatest error!
+    j test_loop_continue
+
+test_outofbounds:
+    li $t7, 4
+    move $v0, $t7
+    j test_done
+
+update_error:
+    move $t5, $v0			# t5 = v0 -> current error is the MAXIMUM
+   
+test_loop_continue:
+    # loop management
+    
+    li $a0, 57
+    li $v0, 11
+    syscall
+    
+    move $a0, $t4			# fix a0 to its original address
+    j test_loop
+    
+test_done: # success!
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    move $v0, $t5
     jr $ra
 
 
