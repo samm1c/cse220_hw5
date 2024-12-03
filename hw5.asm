@@ -85,7 +85,7 @@ placePieceOnBoard:
 piece_done: # error checking and return values!
     beq $s2, $zero, piece_success	# total accumulated error = 0 -> success!
     
-    jal zeroOut				# non-zero -> error -> clear board
+    jal zeroOut				# otherwise, must be non-zero -> error -> clear board
     
     li $t0, 1
     beq $s2, $t0, piece_occupied	# s2 == 1 -> return 1
@@ -216,7 +216,7 @@ test_fit:
     # initialize loop
     li $t0, 0			# i = 0 = index 
     li $v0, 0			# assume no errors
-    li $t5, 0			# t5 = current error
+    li $t5, 0			# t5 = current max error
     
 test_loop: 
     li $t1, 5
@@ -224,14 +224,14 @@ test_loop:
     
     # load arguments
     li $t1, 16
-    mul $t1, $t0, $t1		# t1 = (i * ship size) -> skip previous ships (4 ints = size 16)
+    mul $t1, $t0, $t1		# t1 = (i * ship size) -> skip previous ships (4 ints -> size 16)
     add $t1, $a0, $t1		# t1 = board + offset = address of current ship
     
     lw $t2, 0($t1)		# t2 = type
     lw $t3, 4($t1)		# t3 = orientation
     
     # check type and orientation
-    li $t7, 1
+    li $t7, 1				# t7 -> throwaway / temporary variable
     blt $t2, $t7, test_outofbounds	# type < 1
     blt $t3, $t7, test_outofbounds	# orientation < 1
     
@@ -258,27 +258,22 @@ test_loop:
     lw $t5, 8($sp)
     addi $sp, $sp, 12
     
-    move $a0, $t4			# fix a0 to its original address
+    move $a0, $t4			# fix a0 to its original address b/c you need it every iteration
     
     bgt $v0, $t5, update_error		# v0 from place() > current error -> update to greatest error!
-    j test_loop
+    j test_loop				# otherwise -> no change -> continue loop
 
 test_outofbounds:
-    # clear the board first
-    
-    jal zeroOut
-    
-    
-    # return
+    jal zeroOut				# clear the board first
     li $t5, 4
     j test_done
 
 update_error:
     move $t5, $v0			# t5 = v0 -> current error is the MAXIMUM
-    j test_loop
+    j test_loop				# continue loop!
     
-test_done: # success!
-    lw $ra, 0($sp)
+test_done: # end of loop
+    lw $ra, 0($sp)			# restore ra
     addi $sp, $sp, 4
     move $v0, $t5
     jr $ra
