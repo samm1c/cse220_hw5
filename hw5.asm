@@ -242,21 +242,22 @@ test_loop:
     bgt $t3, $t7, test_outofbounds	# orientation > 4
     
     # prepare arguments $a0, $a1 for placePieceOnBoard
-    move $t4, $a0			# copy address of piece array b/c i need a0 for place()
     move $a0, $t1			# a0 = address of current ship
     addi $t0, $t0, 1
     move $a1, $t0			# a1 = index + 1 = ship_num
     
     # placePieceOnBoard overwrites my t registers, so store it on the stack before calling
-    addi $sp, $sp, -12			
+    addi $sp, $sp, -16			
     sw $t0, 0($sp)			# loop index
-    sw $t4, 4($sp)			# original piece array address
-    sw $t5, 8($sp)			# current error
+    sw $t1, 4($sp) 			# copy address of piece array b/c i need a0 for place()
+    sw $t4, 8($sp)			# original piece array address
+    sw $t5, 12($sp)			# current error
     jal placePieceOnBoard		# call function
     lw $t0, 0($sp)
-    lw $t4, 4($sp)
-    lw $t5, 8($sp)
-    addi $sp, $sp, 12
+    lw $t1, 4($sp)
+    lw $t4, 8($sp)
+    lw $t5, 12($sp)
+    addi $sp, $sp, 16
     
     move $a0, $t4			# fix a0 to its original address b/c you need it every iteration
     
