@@ -281,6 +281,8 @@ update_error:
     j test_loop				# continue loop!
     
 test_done: # end of loop
+    move $v0, $s3			# return value!
+
     lw $ra, 0($sp)			# restore ra
     lw $s0, 4($sp)
     lw $s1, 8($sp)
@@ -288,7 +290,6 @@ test_done: # end of loop
     lw $s3, 16($sp)
     lw $s4, 20($sp)
     addi $sp, $sp, 24
-    move $v0, $s3
     jr $ra
 
 
