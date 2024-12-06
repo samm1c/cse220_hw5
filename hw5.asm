@@ -209,26 +209,31 @@ place_occupied:
 test_fit:
     # Function prologue
     
-    # preserve ra
-    addi $sp, $sp, -4
+    # preserve ra and s registers so that you can use them as you please
+    addi $sp, $sp, -24
     sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    sw $s2, 12($sp)
+    sw $s3, 16($sp)
+    sw $s4, 20($sp)
     
     # initialize loop
-    li $t0, 0			# i = 0 = index 
+    li $s0, 0			# i = 0 = index 
     li $v0, 0			# assume no errors
-    li $t5, 0			# t5 = current max error
+    li $s3, 0			# s3 = current max error
     
 test_loop: 
     li $t1, 5
-    bge $t0, $t1, test_done	# (i >= 5) -> 5 times for 5 pieces
+    bge $s0, $t1, test_done	# (i >= 5) -> 5 times for 5 pieces
     
     # load arguments
     li $t1, 16
-    mul $t1, $t0, $t1		# t1 = (i * ship size) -> skip previous ships (4 ints -> size 16)
-    add $t1, $a0, $t1		# t1 = board + offset = address of current ship
+    mul $s1, $s0, $t1		# s1 = (i * ship size) -> skip previous ships (4 ints -> size 16)
+    add $s1, $a0, $s1		# s1 = board + offset = address of current ship
     
-    lw $t2, 0($t1)		# t2 = type
-    lw $t3, 4($t1)		# t3 = orientation
+    lw $t2, 0($s1)		# t2 = type
+    lw $t3, 4($s1)		# t3 = orientation
     
     # check type and orientation
     li $t7, 1				# t7 -> throwaway / temporary variable
@@ -242,41 +247,48 @@ test_loop:
     bgt $t3, $t7, test_outofbounds	# orientation > 4
     
     # prepare arguments $a0, $a1 for placePieceOnBoard
-    move $a0, $t1			# a0 = address of current ship
-    addi $t0, $t0, 1
-    move $a1, $t0			# a1 = index + 1 = ship_num
+    move $s2, $a0			# copy address of piece array b/c i need a0 for place()
+    move $a0, $s1			# a0 = address of current ship
     
-    # placePieceOnBoard overwrites my t registers, so store it on the stack before calling
+    addi $s0, $s0, 1
+    move $a1, $s0			# a1 = index + 1 = ship_num
+    
+    # placePieceOnBoard overwrites my s registers, so store it on the stack before calling
     addi $sp, $sp, -16			
-    sw $t0, 0($sp)			# loop index
-    sw $t1, 4($sp) 			# copy address of piece array b/c i need a0 for place()
-    sw $t4, 8($sp)			# original piece array address
-    sw $t5, 12($sp)			# current error
+    sw $s0, 0($sp)			# loop index
+    sw $s1, 4($sp)			# 
+    sw $s2, 8($sp)			# original piece array address
+    sw $s3, 12($sp)			# current error
     jal placePieceOnBoard		# call function
-    lw $t0, 0($sp)
-    lw $t1, 4($sp)
-    lw $t4, 8($sp)
-    lw $t5, 12($sp)
+    lw $s0, 0($sp)
+    lw $s1, 4($sp)
+    lw $s2, 8($sp)
+    lw $s3, 12($sp)
     addi $sp, $sp, 16
     
-    move $a0, $t4			# fix a0 to its original address b/c you need it every iteration
+    move $a0, $s2			# fix a0 to its original address b/c you need it every iteration
     
-    bgt $v0, $t5, update_error		# v0 from place() > current error -> update to greatest error!
+    bgt $v0, $s3, update_error		# v0 from place() > current error -> update to greatest error!
     j test_loop				# otherwise -> no change -> continue loop
 
 test_outofbounds:
     jal zeroOut				# clear the board first
-    li $t5, 4
+    li $s3, 4
     j test_done
 
 update_error:
-    move $t5, $v0			# t5 = v0 -> current error is the MAXIMUM
+    move $s3, $v0			# s3 = v0 -> current error is the MAXIMUM
     j test_loop				# continue loop!
     
 test_done: # end of loop
     lw $ra, 0($sp)			# restore ra
-    addi $sp, $sp, 4
-    move $v0, $t5
+    lw $s0, 4($sp)
+    lw $s1, 8($sp)
+    lw $s2, 12($sp)
+    lw $s3, 16($sp)
+    lw $s4, 20($sp)
+    addi $sp, $sp, 24
+    move $v0, $s3
     jr $ra
 
 
