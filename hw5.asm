@@ -210,18 +210,17 @@ test_fit:
     # Function prologue
     
     # preserve ra and s registers so that you can use them as you please
-    addi $sp, $sp, -24
+    addi $sp, $sp, -20
     sw $ra, 0($sp)
     sw $s0, 4($sp)
     sw $s1, 8($sp)
     sw $s2, 12($sp)
     sw $s3, 16($sp)
-    sw $s4, 20($sp)
     
     # initialize loop
     li $s0, 0			# i = 0 = index 
+    li $s2, 0			# s2 = current max error
     li $v0, 0			# assume no errors
-    li $s3, 0			# s3 = current max error
     
 test_loop: 
     li $t1, 5
@@ -247,7 +246,7 @@ test_loop:
     bgt $t3, $t7, test_outofbounds	# orientation > 4
     
     # prepare arguments $a0, $a1 for placePieceOnBoard
-    move $s2, $a0			# copy address of piece array b/c i need a0 for place()
+    move $s3, $a0			# copy address of piece array b/c i need a0 for place(); s3 is just a placeholder
     move $a0, $s1			# a0 = address of current ship
     
     addi $s0, $s0, 1
@@ -256,9 +255,9 @@ test_loop:
     # placePieceOnBoard overwrites my s registers, so store it on the stack before calling
     addi $sp, $sp, -16			
     sw $s0, 0($sp)			# loop index
-    sw $s1, 4($sp)			# 
-    sw $s2, 8($sp)			# original piece array address
-    sw $s3, 12($sp)			# current error
+    sw $s1, 4($sp)			# current ship
+    sw $s2, 8($sp)			# current error
+    sw $s3, 12($sp)			# placeholder for original piece array address
     jal placePieceOnBoard		# call function
     lw $s0, 0($sp)
     lw $s1, 4($sp)
@@ -266,30 +265,30 @@ test_loop:
     lw $s3, 12($sp)
     addi $sp, $sp, 16
     
-    move $a0, $s2			# fix a0 to its original address b/c you need it every iteration
+    move $a0, $s3			# fix a0 to its original address b/c you need it every iteration
     
-    bgt $v0, $s3, update_error		# v0 from place() > current error -> update to greatest error!
+    bgt $v0, $s2, update_error		# v0 from place() > current error -> update to greatest error!
     j test_loop				# otherwise -> no change -> continue loop
 
 test_outofbounds:
     jal zeroOut				# clear the board first
-    li $s3, 4
+    li $s2, 4
     j test_done
 
 update_error:
-    move $s3, $v0			# s3 = v0 -> current error is the MAXIMUM
+    move $s2, $v0			# s2 = v0 -> current error is the MAXIMUM
     j test_loop				# continue loop!
     
 test_done: # end of loop
-    move $v0, $s3			# return value!
-
-    lw $ra, 0($sp)			# restore ra
+    # return value!
+    move $v0, $s2			
+    # restore ra and other registers
+    lw $ra, 0($sp)			
     lw $s0, 4($sp)
     lw $s1, 8($sp)
     lw $s2, 12($sp)
     lw $s3, 16($sp)
-    lw $s4, 20($sp)
-    addi $sp, $sp, 24
+    addi $sp, $sp, 20
     jr $ra
 
 
